@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Mongoose must run only on the server; exclude it from client bundles
+  serverExternalPackages: ["mongoose"],
 };
 
 export default nextConfig;

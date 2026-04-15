@@ -1,0 +1,35 @@
+Tên: Nguyễn Văn A
+Ngày: 15/04/2024
+Công việc:
+- [FE] Thiết kế màn hình login – 80%
+- [FE] Review PR #42 từ Trần Thị B – 100%
+- [FE] Tích hợp Google OAuth vào frontend – 60%
+Vấn đề: Server staging không kết nối được database lúc 14h, đã báo DevOps
+Cần hỗ trợ: Cần DevOps kiểm tra cấu hình nginx
+Kế hoạch: Hoàn thiện màn hình dashboard, bắt đầu trang project list
+
+---
+
+Tên: Trần Thị B
+Ngày: 15/04/2024
+Buổi: Cả ngày
+Công việc:
+- [BE] API đăng nhập (POST /auth/login) – 100%
+- [BE] API refresh token – 100%
+- [BE] Viết unit test cho auth module – 60%
+- [BE] Setup CI pipeline trên GitHub Actions – 40%
+Vấn đề: Chưa có môi trường test riêng, đang dùng chung staging
+Cần hỗ trợ: Cần tạo thêm 1 MongoDB cluster cho môi trường test
+Kế hoạch: Hoàn thiện unit test, viết integration test cho auth
+
+---
+
+Name: Lê Văn C
+Date: 15/04/2024
+Tasks:
+1. [Design] Wireframe cho màn hình Dashboard – 100%
+2. [Design] High-fidelity mockup Login page – 80%
+3. [Design] Component library trong Figma – 50%
+Issues: Chưa confirm được color palette với khách hàng
+Support needed: Cần meeting với khách để confirm design direction
+Next tasks: Hoàn thiện mockup Dashboard, bắt đầu màn hình Projects
