@@ -32,10 +32,10 @@ export async function POST(req: NextRequest) {
     }
 
     const token = await signToken({
-      sub:      user._id.toString(),
+      sub: user._id.toString(),
       username: user.username,
-      role:     user.role,
-      name:     user.name,
+      role: user.role,
+      name: user.name,
     });
 
     const res = NextResponse.json({
@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
     });
     res.headers.set("Set-Cookie", buildAuthCookie(token));
     return res;
-  } catch {
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });
   }
 }

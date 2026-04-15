@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import { User } from "@/lib/models/User";
 
 const MIN_PASSWORD_LEN = 6;
-const SALT_ROUNDS      = 10;
+const SALT_ROUNDS = 10;
 
 /**
  * POST /api/auth/register
@@ -38,14 +38,14 @@ export async function POST(req: NextRequest) {
 
     // First user becomes admin
     const count = await User.countDocuments();
-    const role  = count === 0 ? "admin" : "leader";
+    const role = count === 0 ? "admin" : "leader";
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
     const user = await User.create({
-      username:     username.toLowerCase().trim(),
+      username: username.toLowerCase().trim(),
       passwordHash,
-      name:         name?.trim() || undefined,
+      name: name?.trim() || undefined,
       role,
     });
 
@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
     if (err.code === 11000) {
       return NextResponse.json({ error: "Username is already taken." }, { status: 409 });
     }
+    console.error("LOGIN ERROR:", err);
     return NextResponse.json({ error: "Internal server error." }, { status: 500 });
   }
 }
