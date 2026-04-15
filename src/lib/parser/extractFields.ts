@@ -121,13 +121,11 @@ function extractTaskFromLine(line: string): ExtractedTask | null {
   const pMatch   = raw.match(PROGRESS_RE);
   const progress = pMatch ? Math.min(100, parseInt(pMatch[1], 10)) : undefined;
 
-  // Extract module tag [...]
-  const tagMatch = raw.match(MODULE_TAG_RE);
-  const moduleTag = tagMatch?.[1]?.trim() || undefined;
+  // Do not extract or remove module tags from the task title per user request
+  const moduleTag = undefined;
 
-  // Build clean title: remove [tag], (%progress), DL: deadline notation
+  // Build clean title: remove (%progress), DL: deadline notation
   const title = raw
-    .replace(MODULE_TAG_RE, "")           // remove [TAG]
     .replace(/\s*-\s*DL:\s*[\d\/]+/gi, "")  // remove "- DL: 14/04"
     .replace(/\s*-\s*\d+\/\d+\s*case\b[^))]*/i, "")  // remove "- 71/71 case ..."
     .replace(PROGRESS_RE, "")             // remove 100%
