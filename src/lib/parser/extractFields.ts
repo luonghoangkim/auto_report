@@ -3,7 +3,7 @@ import type { ExtractedTask, MemberReport } from "../ai/types";
 const URL_REGEX = /https?:\/\/[^\s\])>,"']+/g;
 const NAME_LINE_RE = /^Name:\s*(.+?)\s*[-–]\s*(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s*\(([^)]*)\))?\s*$/i;
 const TASK_ITEM_RE = /^\s*\d+\.\s*.+$/;
-const FIELD_LINE_RE = /^\s*-\s*([A-Za-z ]+):\s*(.+?)\s*$/;
+const FIELD_LINE_RE = /^\s*[-•*+]\s*([A-Za-z ]+):\s*(.+?)\s*$/;
 const PROJECT_TAG_RE = /^(\[\s*[^\]]+?\s*\])\s*(.+)$/;
 const TASK_HEADER_RE = /^Tasks?:$/i;
 
