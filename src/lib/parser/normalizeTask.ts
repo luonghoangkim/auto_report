@@ -21,6 +21,15 @@ export interface TaskInput {
   progress: number;
   tags:     string[];
   links:    string[];
+  deadline?: Date | null;
+  bugMetrics?: {
+    total: number;
+    critical: number;
+    major: number;
+    minor: number;
+    fixed: number;
+    open: number;
+  };
   reportId: string;
   date:     Date;
 }
@@ -32,6 +41,15 @@ export interface ExistingTask {
   progress: number;
   tags:     string[];
   links:    string[];
+  deadline?: Date | null;
+  bugMetrics?: {
+    total: number;
+    critical: number;
+    major: number;
+    minor: number;
+    fixed: number;
+    open: number;
+  };
   status:   ITask["status"];
 }
 
@@ -41,6 +59,8 @@ export interface TaskToCreate {
   progress:  number;
   tags:      string[];
   links:     string[];
+  deadline?: Date | null;
+  bugMetrics?: ExistingTask["bugMetrics"];
   reportIds: string[];
   status:    ITask["status"];
   history:   { progress: number; reportId: string; date: Date }[];
@@ -53,9 +73,18 @@ export interface TaskToUpdate {
   historyEntry: { progress: number; reportId: string; date: Date };
   links:        string[];
   tags:         string[];
+  deadline?: Date | null;
+  bugMetrics?: ExistingTask["bugMetrics"];
 }
 
 const FUZZY_THRESHOLD = 0.4;
+
+function mergeBugMetrics(
+  existing?: ExistingTask["bugMetrics"],
+  incoming?: TaskInput["bugMetrics"]
+) {
+  return incoming ?? existing;
+}
 
 function progressToStatus(p: number): ITask["status"] {
   if (p === 0)   return "todo";
@@ -100,6 +129,8 @@ export function normalizeAndMergeTasks(
         historyEntry: { progress: input.progress, reportId: input.reportId, date: input.date },
         links:        Array.from(new Set([...exactMatch.links, ...input.links])),
         tags:         Array.from(new Set([...exactMatch.tags, ...input.tags])),
+        deadline:     input.deadline ?? exactMatch.deadline ?? null,
+        bugMetrics:   mergeBugMetrics(exactMatch.bugMetrics, input.bugMetrics),
       });
       continue;
     }
@@ -121,6 +152,8 @@ export function normalizeAndMergeTasks(
         historyEntry: { progress: input.progress, reportId: input.reportId, date: input.date },
         links:        Array.from(new Set([...existing_.links, ...input.links])),
         tags:         Array.from(new Set([...existing_.tags, ...input.tags])),
+        deadline:     input.deadline ?? existing_.deadline ?? null,
+        bugMetrics:   mergeBugMetrics(existing_.bugMetrics, input.bugMetrics),
       });
       continue;
     }
@@ -132,6 +165,8 @@ export function normalizeAndMergeTasks(
       progress:  input.progress,
       tags:      input.tags,
       links:     input.links,
+      deadline:  input.deadline ?? null,
+      bugMetrics: input.bugMetrics,
       reportIds: [input.reportId],
       status:    progressToStatus(input.progress),
       history:   [{ progress: input.progress, reportId: input.reportId, date: input.date }],

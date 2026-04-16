@@ -185,8 +185,8 @@ export function reportTextToSections(reportText: string): DocxSection[] {
     const trimmed = line.trim();
     if (!trimmed) { bodyLines.push(""); continue; }
 
-    // Numbered heading: "1. XYZ", "2. XYZ"
-    const numHeadingMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
+    // Numbered heading: "1. XYZ", "1/ XYZ"
+    const numHeadingMatch = trimmed.match(/^(\d+)[./]\s+(.+)/);
     if (numHeadingMatch) {
       flush();
       currentSection = { heading: numHeadingMatch[2], level: 2 };

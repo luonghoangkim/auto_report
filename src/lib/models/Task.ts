@@ -9,6 +9,15 @@ export interface IProgressEntry {
   note?: string;
 }
 
+export interface IBugMetrics {
+  total: number;
+  critical: number;
+  major: number;
+  minor: number;
+  fixed: number;
+  open: number;
+}
+
 export interface ITask extends Document {
   projectId: Types.ObjectId;
   title: string;
@@ -20,6 +29,8 @@ export interface ITask extends Document {
   sourceReportIds: Types.ObjectId[];
   links: string[];
   tags: string[];               // module / project tags
+  deadline?: Date | null;
+  bugMetrics?: IBugMetrics;
   lastUpdatedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -31,6 +42,18 @@ const ProgressEntrySchema = new Schema<IProgressEntry>(
     reportId: { type: Schema.Types.ObjectId, ref: "DailyReport" },
     date:     { type: Date, required: true },
     note:     { type: String },
+  },
+  { _id: false }
+);
+
+const BugMetricsSchema = new Schema<IBugMetrics>(
+  {
+    total:    { type: Number, required: true, min: 0 },
+    critical: { type: Number, required: true, min: 0 },
+    major:    { type: Number, required: true, min: 0 },
+    minor:    { type: Number, required: true, min: 0 },
+    fixed:    { type: Number, required: true, min: 0 },
+    open:     { type: Number, required: true, min: 0 },
   },
   { _id: false }
 );
@@ -47,6 +70,8 @@ const TaskSchema = new Schema<ITask>(
     sourceReportIds:[{ type: Schema.Types.ObjectId, ref: "DailyReport" }],
     links:          [{ type: String }],
     tags:           [{ type: String }],
+    deadline:       { type: Date, default: null },
+    bugMetrics:     { type: BugMetricsSchema },
     lastUpdatedAt:  { type: Date, default: Date.now },
   },
   { timestamps: true }

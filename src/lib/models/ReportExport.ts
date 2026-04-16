@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
-export type ReportType = "weekly" | "monthly" | "project";
+export type ReportType = "weekly" | "monthly" | "project" | "leader-daily";
 
 export interface IReportExport extends Document {
   projectId: Types.ObjectId;
@@ -15,7 +15,7 @@ export interface IReportExport extends Document {
 const ReportExportSchema = new Schema<IReportExport>(
   {
     projectId: { type: Schema.Types.ObjectId, ref: "Project", required: true, index: true },
-    type:      { type: String, enum: ["weekly", "monthly", "project"], required: true },
+    type:      { type: String, enum: ["weekly", "monthly", "project", "leader-daily"], required: true },
     dateRange: {
       from: { type: Date, required: true },
       to:   { type: Date, required: true },

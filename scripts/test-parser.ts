@@ -4,42 +4,37 @@
 import { splitIntoMemberBlocks } from "../src/lib/parser/splitReports";
 import { extractMemberFields }   from "../src/lib/parser/extractFields";
 
-const SAMPLE = `Name: Nguyễn Hữu Huấn - 2026/04/14 (Sáng + Chiều)
-Task:
-1. [CD - UI] Xoá tài khoản (100%)
-2. Fix issue list (7 issues)
-ETC: N/A
-Have trouble: N/A
+const SAMPLE = `Name: Hoàng Kim Lương - 2026/04/16 (Sáng + Chiều)
+Tasks:
+1. [ CD - UI ] Thiết kế giao diện Tìm kiếm
+   - Progress: 80%
+   - Deadline: 03/04
+2. Support member
+   - Description: Hỗ trợ debug UI
+3. [ UTE ] App Đại lý
+   - Bugs: 3 (Critical: 0 | Major: 2 | Minor: 1)
+   - Fixed: 5
+   - Open: 4
+   - Progress: 60%
+   - Deadline: 02/04
+Have trouble: Có nguy cơ chậm task Chatbot 1 ngày nếu không clarify thêm scope
 Supported: N/A
 Need support: N/A
-Next task:  Fix issue list
-Link: 
-1. https://www.leansolutions.vn/Project_Task/5650
-2. https://www.leansolutions.vn/Project_Task/5649
-
-Name: Vương Thế Kiệt - 2026/04/14 (Sáng + Chiều)
-Task: [ CD - AI ] Chat bot 
--feature: Nhớ được thông tin user (đáp ứng)
--fix bug chatbot (2 bugs)
-ETC: N/A
-Have trouble: N/A
-Supported: N/A
-Need support: N/A
-Next task: [ CD - AI ] Chat bot  Test + Training tiếp cho chatbot
-Link: https://leansolutions.vn/Project_Task/5623
-
-Name: Võ Hoàng Nhật Nam - 2026/04/14 (Sáng)
-Task:
-•  Retest UI App Online (100% - DL: 14/04 -  71/71 case - Log 4 issue - 1 đề xuất)
-•  Điều chỉnh Figma phần select màu phân loại SP (100% - DL: 14/04)
-ETC: N/A
-Have trouble: N/A
-Supported: N/A
-Need support: N/A
-Next task: N/A
+Next task: Continue - [ CD - UI ] Thiết kế giao diện Tìm kiếm
 Link:
-https://www.leansolutions.vn/Project_Task/5666
-https://www.leansolutions.vn/Project_Task/5652`;
+1. https://leansolutions.vn/Project_Task/5601
+
+Name: Võ Hoàng Nhật Nam - 2026/04/16 (Sáng)
+Tasks:
+1. [ CD - UI ] Retest UI App Online
+   - Progress: 100%
+   - Deadline: 16/04
+Have trouble: N/A
+Supported: N/A
+Need support: Cần confirm scope chatbot
+Next task: [ CD - UI ] Điều chỉnh Figma
+Link:
+1. https://leansolutions.vn/Project_Task/5666`;
 
 const blocks = splitIntoMemberBlocks(SAMPLE);
 console.log(`\n✅ SPLIT: ${blocks.length} blocks detected\n`);
@@ -60,12 +55,12 @@ for (const [i, block] of blocks.entries()) {
   console.log(`  Tasks (${r.tasks.length}):`);
   if (r.tasks.length === 0) console.log("    ❌ NO TASKS DETECTED");
   r.tasks.forEach((t, ti) => {
-    const tag      = t.moduleTag ? `[${t.moduleTag}]` : "[no-tag]";
+    const tag      = t.projectTag ? `${t.projectTag}` : "[no-tag]";
     const progress = t.progress !== undefined ? `${t.progress}%` : "no %";
     console.log(`    ${ti + 1}. ${tag} "${t.title}"  →  ${progress}`);
   });
-  console.log(`  Issues:     ${r.issues ?? "N/A"}`);
-  console.log(`  NextTasks:  ${r.nextTasks ?? "N/A"}`);
+  console.log(`  Trouble:    ${r.haveTrouble ?? "N/A"}`);
+  console.log(`  NextTask:   ${r.nextTask ?? "N/A"}`);
   console.log(`  Links:      ${r.links?.length ?? 0}`);
 }
 

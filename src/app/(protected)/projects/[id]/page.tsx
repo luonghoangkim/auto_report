@@ -99,14 +99,14 @@ function MemberReportCard({
             <input
               id={`task-tag-${index}-${ti}`}
               className="input"
-              style={{ width: 80, fontSize: "0.85rem" }}
-              value={task.moduleTag ?? ""}
+              style={{ width: 120, fontSize: "0.85rem" }}
+              value={task.projectTag ?? ""}
               onChange={(e) => {
                 const tasks = [...report.tasks];
-                tasks[ti] = { ...task, moduleTag: e.target.value };
+                tasks[ti] = { ...task, projectTag: e.target.value };
                 update("tasks", tasks);
               }}
-              placeholder="Tag"
+              placeholder="[TAG]"
             />
             <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", minWidth: 100 }}>
               <input
@@ -125,6 +125,23 @@ function MemberReportCard({
               />
               <span style={{ fontSize: "0.8rem", color: "hsl(220 9% 46%)" }}>%</span>
             </div>
+            <input
+              id={`task-deadline-${index}-${ti}`}
+              type="date"
+              className="input"
+              style={{ width: 145, fontSize: "0.85rem" }}
+              value={task.deadline ?? ""}
+              onChange={(e) => {
+                const tasks = [...report.tasks];
+                tasks[ti] = { ...task, deadline: e.target.value || null };
+                update("tasks", tasks);
+              }}
+            />
+            {task.bugMetrics && (
+              <span style={{ fontSize: "0.75rem", color: "hsl(220 9% 46%)" }}>
+                Bugs {task.bugMetrics.total} · Fixed {task.bugMetrics.fixed} · Open {task.bugMetrics.open}
+              </span>
+            )}
             <button
               type="button"
               onClick={() => {
@@ -141,7 +158,7 @@ function MemberReportCard({
         ))}
         <button
           type="button"
-          onClick={() => update("tasks", [...report.tasks, { title: "", confidence: 0.5 }])}
+          onClick={() => update("tasks", [...report.tasks, { title: "", deadline: null, confidence: 0.5 }])}
           style={{ fontSize: "0.8rem", color: "hsl(221 83% 53%)", background: "none", border: "1px dashed hsl(221 83% 70%)", borderRadius: 6, padding: "0.3rem 0.75rem", cursor: "pointer", marginTop: "0.25rem" }}
           id={`add-task-${index}`}
         >
@@ -153,30 +170,60 @@ function MemberReportCard({
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
         <div>
           <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "hsl(220 9% 46%)", marginBottom: "0.375rem", textTransform: "uppercase" }}>
-            Issues
+            Have Trouble
           </label>
           <textarea
-            id={`member-issues-${index}`}
+            id={`member-trouble-${index}`}
             className="textarea"
             rows={2}
             style={{ fontFamily: "inherit", fontSize: "0.85rem" }}
-            value={report.issues ?? ""}
-            onChange={(e) => update("issues", e.target.value)}
-            placeholder="Any blockers or issues?"
+            value={report.haveTrouble ?? ""}
+            onChange={(e) => update("haveTrouble", e.target.value)}
+            placeholder="Any blockers or risks?"
           />
         </div>
         <div>
           <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "hsl(220 9% 46%)", marginBottom: "0.375rem", textTransform: "uppercase" }}>
-            Next Tasks
+            Next Task
           </label>
           <textarea
             id={`member-next-${index}`}
             className="textarea"
             rows={2}
             style={{ fontFamily: "inherit", fontSize: "0.85rem" }}
-            value={report.nextTasks ?? ""}
-            onChange={(e) => update("nextTasks", e.target.value)}
+            value={report.nextTask ?? ""}
+            onChange={(e) => update("nextTask", e.target.value)}
             placeholder="Planned for tomorrow / next week?"
+          />
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginTop: "0.75rem" }}>
+        <div>
+          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "hsl(220 9% 46%)", marginBottom: "0.375rem", textTransform: "uppercase" }}>
+            Supported
+          </label>
+          <textarea
+            id={`member-supported-${index}`}
+            className="textarea"
+            rows={2}
+            style={{ fontFamily: "inherit", fontSize: "0.85rem" }}
+            value={report.supported ?? ""}
+            onChange={(e) => update("supported", e.target.value)}
+            placeholder="Support provided"
+          />
+        </div>
+        <div>
+          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "hsl(220 9% 46%)", marginBottom: "0.375rem", textTransform: "uppercase" }}>
+            Need Support
+          </label>
+          <textarea
+            id={`member-need-support-${index}`}
+            className="textarea"
+            rows={2}
+            style={{ fontFamily: "inherit", fontSize: "0.85rem" }}
+            value={report.needSupport ?? ""}
+            onChange={(e) => update("needSupport", e.target.value)}
+            placeholder="Support needed"
           />
         </div>
       </div>
@@ -269,22 +316,25 @@ export default function ProjectDetailPage() {
     setParsed({ ...parsed, members });
   };
 
-  const SAMPLE = `Tên: Nguyễn Văn A
-Ngày: ${new Date().toLocaleDateString("vi-VN")}
-Công việc:
-- [FE] Thiết kế màn hình login – 80%
-- [FE] Review PR #42 – 100%
-Vấn đề: Server staging không connect được DB
-Kế hoạch: Hoàn thiện màn hình dashboard
-
----
-
-Tên: Trần Thị B
-Ngày: ${new Date().toLocaleDateString("vi-VN")}
-Công việc:
-- [BE] API đăng nhập - 100%
-- [BE] Viết unit test cho auth module - 60%
-Cần hỗ trợ: Cần review code trước khi merge`;
+  const SAMPLE = `Name: Hoàng Kim Lương - ${new Date().toISOString().split("T")[0].replace(/-/g, "/")} (Sáng + Chiều)
+Tasks:
+1. [ CD - UI ] Thiết kế giao diện Tìm kiếm
+   - Progress: 80%
+   - Deadline: 03/04
+2. Support member
+   - Description: Hỗ trợ debug UI
+3. [ UTE ] App Đại lý
+   - Bugs: 3 (Critical: 0 | Major: 2 | Minor: 1)
+   - Fixed: 5
+   - Open: 4
+   - Progress: 60%
+   - Deadline: 02/04
+Have trouble: Có nguy cơ chậm task Chatbot 1 ngày nếu không clarify thêm scope
+Supported: N/A
+Need support: N/A
+Next task: Continue - [ CD - UI ] Thiết kế giao diện Tìm kiếm
+Link:
+1. https://leansolutions.vn/Project_Task/5601`;
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -346,7 +396,7 @@ Cần hỗ trợ: Cần review code trước khi merge`;
                   Paste Daily Reports
                 </h2>
                 <p style={{ margin: 0, fontSize: "0.875rem", color: "hsl(220 9% 46%)" }}>
-                  Paste one or many team members' daily reports. Formats can vary — we'll figure it out.
+                  Paste one or many team members' daily reports using the fixed format.
                 </p>
               </div>
               <button
@@ -364,7 +414,7 @@ Cần hỗ trợ: Cần review code trước khi merge`;
               rows={18}
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder={"Paste team daily reports here…\n\nSupports:\n- Multiple team members in one paste\n- Vietnamese or English\n- Any format (bullets, numbers, freestyle)\n- Mixed punctuation and spacing\n\nJust paste and click Parse."}
+              placeholder={"Paste fixed-format daily reports here…\n\nRequired structure:\nName: ... - YYYY/MM/DD (Sáng | Chiều | Sáng + Chiều)\nTasks:\n1. ...\n   - Progress: 80%\n   - Deadline: 03/04\nHave trouble: ...\nSupported: ...\nNeed support: ...\nNext task: ...\nLink:\n1. https://..."}
             />
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1rem" }}>

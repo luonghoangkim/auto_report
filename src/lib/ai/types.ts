@@ -5,6 +5,17 @@ export interface ExtractedTask {
   moduleTag?: string;
   projectTag?: string;
   progress?: number;       // 0–100
+  deadline?: string | null;
+  bugMetrics?: {
+    total: number;
+    critical: number;
+    major: number;
+    minor: number;
+    fixed: number;
+    open: number;
+  };
+  description?: string;
+  isSupport?: boolean;
   subtasks?: string[];
   links?: string[];
   confidence: number;      // 0–1
@@ -13,12 +24,12 @@ export interface ExtractedTask {
 export interface MemberReport {
   memberName: string;
   reportDate?: string;     // ISO date string or "unknown"
-  session?: string;        // morning | afternoon | full-day
+  session?: "Sáng" | "Chiều" | "Cả ngày";
   tasks: ExtractedTask[];
-  issues?: string;
-  supportNeeded?: string;
-  supportGiven?: string;
-  nextTasks?: string;
+  haveTrouble?: string;
+  supported?: string;
+  needSupport?: string;
+  nextTask?: string;
   links?: string[];
   rawBlock: string;        // original text slice – stored forever for audit
   confidence: number;      // 0–1 overall

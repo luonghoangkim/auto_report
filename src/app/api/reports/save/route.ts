@@ -53,8 +53,10 @@ export async function POST(req: NextRequest) {
       title:    t.title,
       picName:  member.memberName,
       progress: t.progress ?? 0,
-      tags:     [t.moduleTag, t.projectTag].filter(Boolean),
+      tags:     [t.projectTag, t.moduleTag].filter(Boolean),
       links:    t.links ?? [],
+      deadline: t.deadline ? new Date(t.deadline) : null,
+      bugMetrics: t.bugMetrics,
       reportId: dailyReport._id.toString(),
       date:     guessedDate,
     }))
@@ -67,6 +69,8 @@ export async function POST(req: NextRequest) {
     progress: t.progress,
     tags:     t.tags,
     links:    t.links,
+    deadline: t.deadline ?? null,
+    bugMetrics: t.bugMetrics,
     status:   t.status,
   }));
 
@@ -84,6 +88,8 @@ export async function POST(req: NextRequest) {
         sourceReportIds: t.reportIds,
         links:           t.links,
         tags:            t.tags,
+        deadline:        t.deadline ?? null,
+        bugMetrics:      t.bugMetrics,
         lastUpdatedAt:   guessedDate,
       }))
     );
@@ -91,7 +97,15 @@ export async function POST(req: NextRequest) {
 
   for (const upd of toUpdate) {
     await Task.findByIdAndUpdate(upd.id, {
-      $set:  { progress: upd.progress, status: upd.status, lastUpdatedAt: guessedDate, links: upd.links, tags: upd.tags },
+      $set:  {
+        progress: upd.progress,
+        status: upd.status,
+        lastUpdatedAt: guessedDate,
+        links: upd.links,
+        tags: upd.tags,
+        deadline: upd.deadline ?? null,
+        bugMetrics: upd.bugMetrics,
+      },
       $push: { history: upd.historyEntry, sourceReportIds: dailyReport._id },
     });
   }

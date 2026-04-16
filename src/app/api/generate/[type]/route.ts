@@ -5,8 +5,11 @@ import { Task } from "@/lib/models/Task";
 import { Project } from "@/lib/models/Project";
 import { ReportExport } from "@/lib/models/ReportExport";
 import { User } from "@/lib/models/User";
+import { DailyReport } from "@/lib/models/DailyReport";
+import { ParsedReport } from "@/lib/models/ParsedReport";
 import { getAIProvider } from "@/lib/ai";
 import type { ReportData } from "@/lib/ai/types";
+import { buildLeaderDailyReport } from "@/lib/reports/leaderDailyReport";
 import { format } from "date-fns";
 
 export async function POST(
@@ -17,7 +20,7 @@ export async function POST(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { type } = await params;
-  if (!["weekly", "monthly", "project"].includes(type)) {
+  if (!["weekly", "monthly", "project", "leader-daily"].includes(type)) {
     return NextResponse.json({ error: "Invalid report type" }, { status: 400 });
   }
 
@@ -35,6 +38,44 @@ export async function POST(
 
   const fromDate = new Date(from);
   const toDate   = new Date(to);
+  const leaderName = user.name?.trim() || user.username;
+
+  if (type === "leader-daily") {
+    const reportDate = new Date(to);
+    const dayStart = new Date(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate(), 0, 0, 0, 0);
+    const dayEnd = new Date(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate(), 23, 59, 59, 999);
+
+    const dailyReports = await DailyReport.find({
+      projectId,
+      reportDate: { $gte: dayStart, $lte: dayEnd },
+    }).select("_id").lean();
+
+    const parsedReports = await ParsedReport.find({
+      dailyReportId: { $in: dailyReports.map((report) => report._id) },
+    }).lean();
+
+    const tasks = await Task.find({ projectId }).lean();
+    const memberReports = parsedReports.flatMap((report) => report.memberReports ?? []);
+    const content = buildLeaderDailyReport({
+      leaderName,
+      projectName: project.name,
+      reportDate,
+      memberReports,
+      tasks,
+    });
+    const fileName = `leader-daily-report-${format(reportDate, "yyyy-MM-dd")}.docx`;
+
+    const exported = await ReportExport.create({
+      projectId,
+      type,
+      dateRange: { from: reportDate, to: reportDate },
+      content,
+      fileName,
+      createdBy: user._id,
+    });
+
+    return NextResponse.json({ content, exportId: exported._id, fileName });
+  }
 
   const tasks = await Task.find({
     projectId,

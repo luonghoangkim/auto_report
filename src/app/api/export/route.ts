@@ -17,11 +17,17 @@ export async function GET(req: NextRequest) {
   if (!record) return NextResponse.json({ error: "Export not found" }, { status: 404 });
 
   const project  = record.projectId as any;
-  const subtitle = `${format(record.dateRange.from, "dd/MM/yyyy")} – ${format(record.dateRange.to, "dd/MM/yyyy")}`;
+  const isLeaderDaily = record.type === "leader-daily";
+  const subtitle = isLeaderDaily
+    ? format(record.dateRange.to, "dd/MM/yyyy")
+    : `${format(record.dateRange.from, "dd/MM/yyyy")} – ${format(record.dateRange.to, "dd/MM/yyyy")}`;
   const sections = reportTextToSections(record.content);
+  const title = isLeaderDaily
+    ? `${project.name} — DAILY LEADER REPORT`
+    : `${project.name} — ${record.type.toUpperCase()} REPORT`;
 
   const buffer = await buildDocx(
-    `${project.name} — ${record.type.toUpperCase()} REPORT`,
+    title,
     subtitle,
     sections
   );

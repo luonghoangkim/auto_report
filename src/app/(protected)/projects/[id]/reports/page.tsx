@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useToast } from "@/components/layout/Toast";
 
-type ReportType = "weekly" | "monthly" | "project";
+type ReportType = "weekly" | "monthly" | "project" | "leader-daily";
 
 interface ExportRecord {
   _id: string;
@@ -18,6 +18,7 @@ const TYPE_LABELS: Record<ReportType, string> = {
   weekly:  "Weekly Report",
   monthly: "Monthly Report",
   project: "Project Progress Report",
+  "leader-daily": "Daily Leader Report",
 };
 
 export default function ReportsPage() {
@@ -85,7 +86,7 @@ export default function ReportsPage() {
             <span style={{ fontSize: "0.875rem", color: "hsl(220 9% 46%)" }}>Reports</span>
           </div>
           <h1 className="page-title">Generate Reports</h1>
-          <p className="page-subtitle">Create weekly, monthly, or project progress reports</p>
+          <p className="page-subtitle">Create weekly, monthly, project, or daily leader reports</p>
         </div>
       </div>
 
@@ -98,7 +99,7 @@ export default function ReportsPage() {
           <div style={{ marginBottom: "1.25rem" }}>
             <label className="section-label">Report Type</label>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              {(["weekly", "monthly", "project"] as ReportType[]).map((t) => (
+              {(["weekly", "monthly", "project", "leader-daily"] as ReportType[]).map((t) => (
                 <label
                   key={t}
                   id={`report-type-${t}`}
@@ -120,13 +121,22 @@ export default function ReportsPage() {
                     name="reportType"
                     value={t}
                     checked={reportType === t}
-                    onChange={() => setReportType(t)}
+                    onChange={() => {
+                      setReportType(t);
+                      if (t === "leader-daily") setFrom(to);
+                    }}
                     style={{ accentColor: "hsl(221 83% 53%)" }}
                   />
                   <div>
                     <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>{TYPE_LABELS[t]}</div>
                     <div style={{ fontSize: "0.75rem", color: "hsl(220 9% 46%)" }}>
-                      {t === "weekly" ? "Last 7 days" : t === "monthly" ? "Last 30 days" : "Full project"}
+                      {t === "weekly"
+                        ? "Last 7 days"
+                        : t === "monthly"
+                          ? "Last 30 days"
+                          : t === "project"
+                            ? "Full project"
+                            : "Single report day"}
                     </div>
                   </div>
                 </label>
@@ -136,10 +146,12 @@ export default function ReportsPage() {
 
           {/* Date range */}
           <div style={{ marginBottom: "1.5rem" }}>
-            <label className="section-label">Date Range</label>
+            <label className="section-label">{reportType === "leader-daily" ? "Report Date" : "Date Range"}</label>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               <div>
-                <label style={{ fontSize: "0.8rem", color: "hsl(220 9% 46%)", display: "block", marginBottom: "0.25rem" }}>From</label>
+                <label style={{ fontSize: "0.8rem", color: "hsl(220 9% 46%)", display: "block", marginBottom: "0.25rem" }}>
+                  {reportType === "leader-daily" ? "From" : "From"}
+                </label>
                 <input
                   id="report-from-date"
                   type="date"
@@ -149,16 +161,26 @@ export default function ReportsPage() {
                 />
               </div>
               <div>
-                <label style={{ fontSize: "0.8rem", color: "hsl(220 9% 46%)", display: "block", marginBottom: "0.25rem" }}>To</label>
+                <label style={{ fontSize: "0.8rem", color: "hsl(220 9% 46%)", display: "block", marginBottom: "0.25rem" }}>
+                  {reportType === "leader-daily" ? "Report day" : "To"}
+                </label>
                 <input
                   id="report-to-date"
                   type="date"
                   className="input"
                   value={to}
-                  onChange={(e) => setTo(e.target.value)}
+                  onChange={(e) => {
+                    setTo(e.target.value);
+                    if (reportType === "leader-daily") setFrom(e.target.value);
+                  }}
                 />
               </div>
             </div>
+            {reportType === "leader-daily" && (
+              <p style={{ margin: "0.5rem 0 0", fontSize: "0.75rem", color: "hsl(220 9% 46%)" }}>
+                Daily Leader Report uses the selected report day.
+              </p>
+            )}
           </div>
 
           <button
