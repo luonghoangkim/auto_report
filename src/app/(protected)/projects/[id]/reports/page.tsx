@@ -74,6 +74,16 @@ export default function ReportsPage() {
     toast("info", "Downloading DOCX file…");
   };
 
+  const copyReportContent = async () => {
+    if (!content) return;
+    try {
+      await navigator.clipboard.writeText(content);
+      toast("success", "Report content copied.");
+    } catch {
+      toast("error", "Copy failed. Please try again.");
+    }
+  };
+
   return (
     <div style={{ padding: "2rem" }}>
       <div className="page-header">
@@ -216,6 +226,15 @@ export default function ReportsPage() {
                   <div style={{ fontSize: "0.8rem", color: "hsl(220 9% 46%)" }}>Preview</div>
                 </div>
                 <button
+                  id="copy-report-btn"
+                  className="btn-secondary"
+                  onClick={copyReportContent}
+                  disabled={!content}
+                >
+                  <CopyIcon />
+                  Copy
+                </button>
+                <button
                   id="download-docx-btn"
                   className="btn-primary"
                   onClick={downloadDocx}
@@ -241,7 +260,16 @@ export default function ReportsPage() {
               >
                 {content}
               </pre>
-              <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid hsl(220 13% 91%)", display: "flex", justifyContent: "flex-end" }}>
+              <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid hsl(220 13% 91%)", display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+                <button
+                  id="copy-report-bottom-btn"
+                  className="btn-secondary"
+                  onClick={copyReportContent}
+                  disabled={!content}
+                >
+                  <CopyIcon />
+                  Copy Content
+                </button>
                 <button
                   id="download-docx-bottom-btn"
                   className="btn-primary"
@@ -270,4 +298,5 @@ const iconProps = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", s
 function SpinnerIcon()  { return <svg {...iconProps} style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>; }
 function ReportIcon()   { return <svg {...iconProps}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>; }
 function DownloadIcon() { return <svg {...iconProps}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>; }
+function CopyIcon()     { return <svg {...iconProps}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>; }
 function ReportBigIcon(){ return <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>; }
