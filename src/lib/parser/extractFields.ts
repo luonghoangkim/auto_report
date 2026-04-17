@@ -7,6 +7,11 @@ const FIELD_LINE_RE = /^\s*[-•*+]\s*([A-Za-z ]+):\s*(.+?)\s*$/;
 const PROJECT_TAG_RE = /^(\[\s*[^\]]+?\s*\])\s*(.+)$/;
 const TASK_HEADER_RE = /^Tasks?:$/i;
 
+function normalizeProjectTag(rawTag: string): string {
+  const inside = rawTag.slice(1, -1).trim().replace(/[ \t]+/g, " ");
+  return `[${inside}]`;
+}
+
 function sanitizeLine(line: string): string {
   return line
     .normalize("NFKC")
@@ -77,9 +82,10 @@ function parseTaskHeader(line: string): Pick<
   const rawTitle = line.replace(/^\s*\d+\.\s*/, "").trim();
   if (!rawTitle) return null;
   const tagMatch = rawTitle.match(PROJECT_TAG_RE);
-  const projectTag = tagMatch?.[1]?.trim();
-  const title = (tagMatch?.[2] ?? rawTitle).trim();
-  const isSupport = /^Support member$/i.test(title);
+  const projectTag = tagMatch?.[1] ? normalizeProjectTag(tagMatch[1]) : undefined;
+  const taskTitleWithoutTag = (tagMatch?.[2] ?? rawTitle).trim();
+  const title = projectTag ? `${projectTag} ${taskTitleWithoutTag}` : taskTitleWithoutTag;
+  const isSupport = /^Support member$/i.test(taskTitleWithoutTag);
 
   return {
     title,
