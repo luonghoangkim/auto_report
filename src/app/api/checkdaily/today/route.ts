@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth/session";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/lib/models/User";
 import { CheckDaily } from "@/lib/models/CheckDaily";
-import { CHECK_DAILY_ITEM_TYPES, getTodayDateKey } from "@/lib/checkdaily/utils";
+import { calculateCheckDailyStreak, CHECK_DAILY_ITEM_TYPES, getTodayDateKey } from "@/lib/checkdaily/utils";
 
 export async function GET() {
   const session = await getSession();
@@ -47,6 +47,15 @@ export async function GET() {
     await CheckDaily.findByIdAndUpdate(doc._id, { $set: { status } });
   }
 
+  const completedDocs = await CheckDaily.find({
+    leaderId: leader._id,
+    status: "completed",
+  })
+    .select({ date: 1, _id: 0 })
+    .lean();
+  const completedDateSet = new Set(completedDocs.map((d) => d.date));
+  const streak = calculateCheckDailyStreak(completedDateSet, date, status === "completed");
+
   return NextResponse.json({
     checkDaily: {
       ...doc,
@@ -54,6 +63,7 @@ export async function GET() {
       leaderId: doc.leaderId.toString(),
       status,
       progress: { completed, total },
+      streak,
       items: (doc.items ?? []).map((i) => ({
         ...i,
         checkedAt: i.checkedAt ?? null,
