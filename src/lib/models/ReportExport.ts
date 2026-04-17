@@ -10,6 +10,7 @@ export interface IReportExport extends Document {
   fileName: string;       // e.g. "weekly-report-2024-W20.docx"
   createdBy: Types.ObjectId;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 const ReportExportSchema = new Schema<IReportExport>(
