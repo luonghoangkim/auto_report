@@ -49,12 +49,20 @@ function toIsoDate(year: number, month: number, day: number): string {
 }
 
 function parseDeadline(value: string, reportDate: string): string | null {
-  const match = value.match(/^(\d{1,2})\/(\d{1,2})$/);
+  // Accept both "18/04" and "18/04 - Dời deadline ..."
+  const match = value.match(/(\d{1,2})\/(\d{1,2})/);
   if (!match) return null;
 
   const [, day, month] = match;
   const reportYear = Number(reportDate.slice(0, 4));
   return toIsoDate(reportYear, Number(month), Number(day));
+}
+
+function parseLeadingCount(value: string): number | null {
+  const match = value.match(/^(\d+)\b/);
+  if (!match) return null;
+  const count = Number(match[1]);
+  return Number.isNaN(count) ? null : count;
 }
 
 function parseBugMetrics(value: string) {
@@ -172,6 +180,21 @@ function parseTasks(lines: string[], reportDate: string): ExtractedTask[] {
         currentTask.description = currentTask.description
           ? `${currentTask.description} | Feature: ${featureText}`
           : `Feature: ${featureText}`;
+
+        // Fallback rule for leader daily quality section:
+        // when member only logs Feature and doesn't provide Bug,
+        // count that Feature number into bug total/open.
+        const featureCount = parseLeadingCount(featureText);
+        if (featureCount !== null && !currentTask.bugMetrics) {
+          currentTask.bugMetrics = {
+            total: featureCount,
+            critical: 0,
+            major: 0,
+            minor: 0,
+            fixed: 0,
+            open: featureCount,
+          };
+        }
       }
       continue;
     }

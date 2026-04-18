@@ -3,6 +3,36 @@ import { getSession } from "@/lib/auth/session";
 import { connectDB } from "@/lib/mongodb";
 import { Task } from "@/lib/models/Task";
 
+const DONE_STATUS = "done";
+
+function normalizeTaskUpdate(input: { progress?: unknown; status?: unknown }) {
+  const normalized: { progress?: number; status?: string } = {};
+  const hasProgress = typeof input.progress === "number";
+  const hasStatus = typeof input.status === "string" && input.status.length > 0;
+
+  if (hasProgress) {
+    normalized.progress = Math.max(0, Math.min(100, Math.round(input.progress as number)));
+  }
+  if (hasStatus) {
+    normalized.status = input.status as string;
+  }
+
+  if (hasStatus && normalized.status === DONE_STATUS) {
+    normalized.progress = 100;
+  } else if (hasProgress && normalized.progress === 100) {
+    normalized.status = DONE_STATUS;
+  } else if (
+    hasProgress &&
+    typeof normalized.progress === "number" &&
+    normalized.progress < 100 &&
+    normalized.status === DONE_STATUS
+  ) {
+    normalized.status = "doing";
+  }
+
+  return normalized;
+}
+
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,8 +71,9 @@ export async function PATCH(req: NextRequest) {
 
   await connectDB();
   const update: Record<string, unknown> = { lastUpdatedAt: new Date() };
-  if (typeof progress === "number") update.progress = progress;
-  if (status)  update.status  = status;
+  const normalized = normalizeTaskUpdate({ progress, status });
+  if (typeof normalized.progress === "number") update.progress = normalized.progress;
+  if (normalized.status) update.status = normalized.status;
   if (title)   update.title   = title;
   if (picName) update.picName = picName;
 
@@ -50,4 +81,18 @@ export async function PATCH(req: NextRequest) {
   if (!task) return NextResponse.json({ error: "Task not found" }, { status: 404 });
 
   return NextResponse.json({ task });
+}
+
+export async function DELETE(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await req.json();
+  if (!id) return NextResponse.json({ error: "Task id required" }, { status: 400 });
+
+  await connectDB();
+  const deletedTask = await Task.findByIdAndDelete(id).lean();
+  if (!deletedTask) return NextResponse.json({ error: "Task not found" }, { status: 404 });
+
+  return NextResponse.json({ success: true });
 }

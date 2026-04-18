@@ -19,6 +19,15 @@ const SEPARATOR_PATTERN = /^[-=*_]{3,}\s*$/;
 const NAME_HEADER_PATTERN = /^[\*_]*\s*(Tên|Name|Họ tên|Ho ten|Báo cáo|Bao cao|Reporter|Member)\s*[\*_]*\s*[:\-–]/i;
 const NUMBERED_SECTION = /^\s*(\d+)[.)]\s+[A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ][a-zàáâãèéêìíòóôõùúăđĩũơưạảấầẩẫậắằẳẵặẹẻẽềềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ ]+$/;
 
+function normalizeRawBatch(rawText: string): string {
+  // Handle pasted blocks where the next member starts right after a URL:
+  // ".../5724Name: Lê ..."
+  return rawText.replace(
+    /(https?:\/\/[^\s]+)(?=\s*(?:Name|Tên|Họ tên|Ho ten)\s*:)/gi,
+    "$1\n"
+  );
+}
+
 /** Try to split at separator lines */
 function splitBySeparator(text: string): string[] | null {
   const lines = text.split("\n");
@@ -89,23 +98,24 @@ function splitByBlankLines(text: string): string[] {
  */
 export function splitIntoMemberBlocks(rawText: string): string[] {
   if (!rawText || rawText.trim().length === 0) return [];
+  const normalizedText = normalizeRawBatch(rawText);
 
   try {
-    const bySep = splitBySeparator(rawText);
+    const bySep = splitBySeparator(normalizedText);
     if (bySep && bySep.length >= 2) return bySep;
 
-    const byHeader = splitByNameHeader(rawText);
+    const byHeader = splitByNameHeader(normalizedText);
     if (byHeader && byHeader.length >= 2) return byHeader;
 
-    const byNum = splitByNumberedSection(rawText);
+    const byNum = splitByNumberedSection(normalizedText);
     if (byNum && byNum.length >= 2) return byNum;
 
-    const byBlank = splitByBlankLines(rawText);
+    const byBlank = splitByBlankLines(normalizedText);
     if (byBlank.length >= 2) return byBlank;
 
     // Last resort: treat entire text as one report
-    return [rawText.trim()];
+    return [normalizedText.trim()];
   } catch {
-    return [rawText.trim()];
+    return [normalizedText.trim()];
   }
 }

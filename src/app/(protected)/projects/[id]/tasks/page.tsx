@@ -16,6 +16,7 @@ interface Task {
 }
 
 const STATUS_OPTIONS = ["all", "todo", "doing", "review", "done"] as const;
+const DONE_STATUS = "done";
 
 export default function TasksPage() {
   const params    = useParams();
@@ -60,6 +61,25 @@ export default function TasksPage() {
       if (!res.ok) { toast("error", "Failed to update task."); return; }
       toast("success", "Task updated.");
       setEditId(null);
+      fetchTasks();
+    } catch {
+      toast("error", "Network error.");
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    const confirmed = window.confirm("Delete this task?");
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: taskId }),
+      });
+      if (!res.ok) { toast("error", "Failed to delete task."); return; }
+      toast("success", "Task deleted.");
+      if (editId === taskId) setEditId(null);
       fetchTasks();
     } catch {
       toast("error", "Network error.");
@@ -233,7 +253,13 @@ export default function TasksPage() {
                             className="input"
                             style={{ width: 65 }}
                             value={editProgress}
-                            onChange={(e) => setEditProgress(parseInt(e.target.value) || 0)}
+                            onChange={(e) => {
+                              const raw = parseInt(e.target.value, 10);
+                              const nextProgress = Number.isNaN(raw) ? 0 : Math.min(100, Math.max(0, raw));
+                              setEditProgress(nextProgress);
+                              if (nextProgress === 100) setEditStatus(DONE_STATUS);
+                              else if (editStatus === DONE_STATUS) setEditStatus("doing");
+                            }}
                             id={`edit-progress-${task._id}`}
                           />
                         ) : (
@@ -256,7 +282,11 @@ export default function TasksPage() {
                             className="input"
                             style={{ padding: "0.35rem 0.5rem", fontSize: "0.85rem" }}
                             value={editStatus}
-                            onChange={(e) => setEditStatus(e.target.value)}
+                            onChange={(e) => {
+                              const nextStatus = e.target.value;
+                              setEditStatus(nextStatus);
+                              if (nextStatus === DONE_STATUS) setEditProgress(100);
+                            }}
                             id={`edit-status-${task._id}`}
                           >
                             {["todo", "doing", "review", "done"].map((s) => (
@@ -279,11 +309,19 @@ export default function TasksPage() {
                             <button className="btn-secondary" style={{ padding: "0.3rem 0.625rem", fontSize: "0.8rem" }} onClick={() => setEditId(null)} id={`cancel-task-${task._id}`}>
                               Cancel
                             </button>
+                            <button className="btn-secondary" style={{ padding: "0.3rem 0.625rem", fontSize: "0.8rem", color: "hsl(0 72% 51%)", borderColor: "hsl(0 84% 90%)" }} onClick={() => deleteTask(task._id)} id={`delete-task-${task._id}`}>
+                              Delete
+                            </button>
                           </div>
                         ) : (
-                          <button className="btn-secondary" style={{ padding: "0.3rem 0.625rem", fontSize: "0.8rem" }} onClick={() => startEdit(task)} id={`edit-task-${task._id}`}>
-                            Edit
-                          </button>
+                          <div style={{ display: "flex", gap: "0.375rem" }}>
+                            <button className="btn-secondary" style={{ padding: "0.3rem 0.625rem", fontSize: "0.8rem" }} onClick={() => startEdit(task)} id={`edit-task-${task._id}`}>
+                              Edit
+                            </button>
+                            <button className="btn-secondary" style={{ padding: "0.3rem 0.625rem", fontSize: "0.8rem", color: "hsl(0 72% 51%)", borderColor: "hsl(0 84% 90%)" }} onClick={() => deleteTask(task._id)} id={`delete-task-${task._id}`}>
+                              Delete
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
