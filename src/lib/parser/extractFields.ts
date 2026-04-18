@@ -61,13 +61,28 @@ function parseBugMetrics(value: string) {
   const bugMatch = value.match(
     /^(\d+)\s*\(Critical:\s*(\d+)\s*\|\s*Major:\s*(\d+)\s*\|\s*Minor:\s*(\d+)\)$/i
   );
-  if (!bugMatch) return null;
+  if (bugMatch) {
+    return {
+      total: Number(bugMatch[1]),
+      critical: Number(bugMatch[2]),
+      major: Number(bugMatch[3]),
+      minor: Number(bugMatch[4]),
+      fixed: 0,
+      open: 0,
+    };
+  }
+
+  // Also accept simple daily format:
+  // - "6"
+  // - "6 (6 App New)"
+  const simpleMatch = value.match(/^(\d+)(?:\s*\((.*?)\))?\s*$/i);
+  if (!simpleMatch) return null;
 
   return {
-    total: Number(bugMatch[1]),
-    critical: Number(bugMatch[2]),
-    major: Number(bugMatch[3]),
-    minor: Number(bugMatch[4]),
+    total: Number(simpleMatch[1]),
+    critical: 0,
+    major: 0,
+    minor: 0,
     fixed: 0,
     open: 0,
   };
@@ -143,6 +158,21 @@ function parseTasks(lines: string[], reportDate: string): ExtractedTask[] {
 
     if (key === "bugs") {
       currentTask.bugMetrics = parseBugMetrics(value) ?? undefined;
+      continue;
+    }
+
+    if (key === "bug") {
+      currentTask.bugMetrics = parseBugMetrics(value) ?? undefined;
+      continue;
+    }
+
+    if (key === "feature" || key === "features") {
+      const featureText = normalizeOptionalValue(value);
+      if (featureText) {
+        currentTask.description = currentTask.description
+          ? `${currentTask.description} | Feature: ${featureText}`
+          : `Feature: ${featureText}`;
+      }
       continue;
     }
 
